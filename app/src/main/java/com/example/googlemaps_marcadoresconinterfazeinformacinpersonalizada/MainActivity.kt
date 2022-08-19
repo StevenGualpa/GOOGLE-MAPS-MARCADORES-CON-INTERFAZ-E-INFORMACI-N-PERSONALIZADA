@@ -16,28 +16,34 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polyline
+import com.google.android.gms.maps.model.PolylineOptions
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener , GoogleMap.OnMapClickListener{
+class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener , GoogleMap.OnMapClickListener {
 
-    private lateinit var map:GoogleMap
-    var REQUEST_CODE_LOCATION=0
+    private lateinit var map: GoogleMap
+    var REQUEST_CODE_LOCATION = 0
+    var puntos: ArrayList<LatLng> = ArrayList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         MuestraMapa()
     }
 
-    private fun MuestraMapa(){
-        val mapFragment:SupportMapFragment=supportFragmentManager.findFragmentById(R.id.fragmentMap) as SupportMapFragment
+    private fun MuestraMapa() {
+        val mapFragment: SupportMapFragment =
+            supportFragmentManager.findFragmentById(R.id.fragmentMap) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
+
     //Funcion Para Agregar Marcador
-    private fun CreaMarcador(){
-        val coordenadas=LatLng(-1.0803351324691082, -79.50145350501472)
-        val marcador: MarkerOptions =MarkerOptions().position(coordenadas).title("UTEQ")
+    private fun CreaMarcador() {
+        val coordenadas = LatLng(-1.0803351324691082, -79.50145350501472)
+        val marcador: MarkerOptions = MarkerOptions().position(coordenadas).title("UTEQ")
         map.addMarker(marcador)
         //Animacion para Dirigir la camara hacia el marcador
-        map.animateCamera(CameraUpdateFactory.newLatLngZoom(coordenadas,18f),5000,null)
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(coordenadas, 18f), 5000, null)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -50,10 +56,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     }
 
 
-
-
-    fun MensajeLargo(Mensaje: String)
-    {
+    fun MensajeLargo(Mensaje: String) {
         Toast.makeText(this, Mensaje.toString(), Toast.LENGTH_LONG).show()
 
     }
@@ -63,26 +66,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     private fun isLocatedPermissionGranted() = ContextCompat.checkSelfPermission(
         this,
         Manifest.permission.ACCESS_FINE_LOCATION
-    )==PackageManager.PERMISSION_GRANTED
+    ) == PackageManager.PERMISSION_GRANTED
 
 
-
-    private fun enableLocation(){
-        if(!::map.isInitialized)return
-        if(isLocatedPermissionGranted()){
-            map.isMyLocationEnabled=true
-        }else{
+    private fun enableLocation() {
+        if (!::map.isInitialized) return
+        if (isLocatedPermissionGranted()) {
+            map.isMyLocationEnabled = true
+        } else {
             requesLocationPermission() //Pide el Permiso
         }
 
     }
-    private fun requesLocationPermission(){
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.ACCESS_FINE_LOCATION)){
-        MensajeLargo("Acepta los Permisos")
-        }
-        else{
-            ActivityCompat.requestPermissions(  this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),REQUEST_CODE_LOCATION)
+
+    private fun requesLocationPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+        ) {
+            MensajeLargo("Acepta los Permisos")
+        } else {
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_CODE_LOCATION)
         }
     }
 
@@ -92,15 +96,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
-           REQUEST_CODE_LOCATION->if(grantResults.isNotEmpty()&&grantResults[0]==PackageManager.PERMISSION_GRANTED){
-               map.isMyLocationEnabled=true
-           }else{
-               MensajeLargo("Para Actucar la localizacion ve a ajustes y acepta los permisos")
-           }
-           else->{}
+        when (requestCode) {
+            REQUEST_CODE_LOCATION -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                map.isMyLocationEnabled = true
+            } else {
+                MensajeLargo("Para Actucar la localizacion ve a ajustes y acepta los permisos")
+            }
+            else -> {}
 
-       }
+        }
     }
 
 
@@ -120,13 +124,48 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
     }
 
     override fun onMyLocationClick(p0: Location) {
-            MensajeLargo("Estas en ${p0.latitude},${p0.longitude}")
+        MensajeLargo("Estas en ${p0.latitude},${p0.longitude}")
     }
 
     override fun onMapClick(p0: LatLng) {
-        MensajeLargo("Estas en ${p0.latitude},${p0.longitude}")
+     //   MensajeLargo("Estas en ${p0.latitude},${p0.longitude}")
 
+        val coordenadas = LatLng(p0.latitude,p0.longitude)
+        val marcador: MarkerOptions = MarkerOptions().position(coordenadas).title(puntos.size.toString())
+        map.addMarker(marcador)
+        //Animacion para Dirigir la camara hacia el marcador
+       // map.animateCamera(CameraUpdateFactory.newLatLngZoom(coordenadas, 18f), 5000, null)
+
+        puntos.add(p0)
+
+
+        if(puntos.size==4){
+            var lineas: PolylineOptions= PolylineOptions()
+            for(index:LatLng in puntos)
+                lineas.add(index)
+            lineas.add(puntos.get(0))
+            map.addPolyline(lineas)
+            puntos.clear()
+        }
     }
 
 
+    private fun SalvaCoordenada(po: LatLng) {
+        puntos.add(po)
+    }
+
+    private fun MuestroLineas() {
+        if(puntos.size==4){
+            var lineas: PolylineOptions= PolylineOptions()
+            for(index:LatLng in puntos)
+                lineas.add(index)
+            lineas.add(puntos.get(0))
+        map.addPolyline(lineas)
+            puntos.clear()
+        }
+
+    }
 }
+
+
+
