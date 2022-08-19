@@ -14,12 +14,9 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.Polyline
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener , GoogleMap.OnMapClickListener {
+class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener,OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener , GoogleMap.OnMapClickListener {
 
     private lateinit var map: GoogleMap
     var REQUEST_CODE_LOCATION = 0
@@ -52,6 +49,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
         map.setOnMyLocationButtonClickListener(this)
         map.setOnMyLocationClickListener(this)
         map.setOnMapClickListener(this)
+        map.setOnMarkerClickListener(this)
+
         enableLocation()
     }
 
@@ -138,6 +137,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
 
         puntos.add(p0)
 
+        var i=0
+        /*
+       if(puntos.size>0){
+           while (i<puntos.size)
+           {
+               if(puntos[i] == p0)
+               {
+                   puntos.removeAt(i)
+                   break
+               }
+               i++
+           }
+       }
+       */
+
 
         if(puntos.size==4){
             var lineas: PolylineOptions= PolylineOptions()
@@ -164,6 +178,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLoca
             puntos.clear()
         }
 
+    }
+
+    override fun onMarkerClick(p0: Marker): Boolean {
+            p0.remove()
+        var i=0
+        if(puntos.size>0){
+            while (i<puntos.size)
+            {
+                if(puntos[i].latitude == p0.position.latitude &&puntos[i].longitude == p0.position.longitude)
+                {
+                    puntos.removeAt(i)
+                    break
+                }
+                i++
+            }
+        }
+        return false
     }
 }
 
